@@ -54,30 +54,44 @@ function search(keyword, kinds) {
 }
 
 async function renderMenu() {
-  /* 
+  /*
     1. 메인페이지 메뉴 생성 및 메뉴클릭 이벤트 정의
     2. 검색창과 검색 이벤트 정의(검색이 메뉴에 있으므로) - 함수가 커지면 별도 파일로 분리 필요
-    */
+  */
+  const menuContainer = document.getElementById("menu");
+
   blogMenu.forEach((menu) => {
-    // 메뉴 링크 생성
-    const link = document.createElement("a");
-
-    // (static) index.html: <div id="contents" class="mt-6 grid-cols-3"></div>
-    link.classList.add(...menuListStyle.split(" "));
-    link.classList.add(`${menu.name}`);
-
-    link.href = menu.download_url;
-    // 확장자를 제외하고 이름만 innerText로 사용
     const menuName = menu.name.split(".")[0];
-    link.innerText = menuName;
 
-    link.onclick = (event) => {
-      // 메뉴 링크 클릭 시 이벤트 중지 후 menu 내용을 읽어와 contents 영역에 렌더링
-      event.preventDefault();
+    if (menu.name === "about.md") {
+      // About 메뉴는 단일 링크
+      const link = document.createElement("a");
+      link.classList.add(...menuListStyle.split(" "));
+      link.href = menu.download_url;
+      link.innerText = menuName;
+      link.onclick = (event) => {
+        event.preventDefault();
+        renderOtherContents(menu);
+        const url = new URL(origin);
+        url.searchParams.set("menu", menu.name);
+        window.history.pushState({}, "", url);
+      };
+      menuContainer.appendChild(link);
+    } 
+    
+    else if (menu.name === "blog.md") {
+      // Blog 메뉴는 드롭다운 형태
+      const blogWrapper = document.createElement("div");
+      blogWrapper.classList.add("relative", "group");
 
-      if (menu.name === "blog.md") {
+      const blogLink = document.createElement("a");
+      blogLink.classList.add(...menuListStyle.split(" "));
+      blogLink.href = menu.download_url;
+      blogLink.innerText = "Blog";
+
+      blogLink.onclick = (event) => {
+        event.preventDefault();
         if (blogList.length === 0) {
-          // 블로그 리스트 로딩
           initDataBlogList().then(() => {
             renderBlogList();
           });
@@ -87,11 +101,31 @@ async function renderMenu() {
         const url = new URL(origin);
         url.searchParams.set("menu", menu.name);
         window.history.pushState({}, "", url);
-      } else {
-        renderOtherContents(menu);
-      }
-    };
-    document.getElementById("menu").appendChild(link);
+      };
+
+      const subMenu = document.createElement("div");
+      subMenu.classList.add("absolute", "hidden", "group-hover:block", "bg-white", "shadow-lg", "mt-2", "py-2", "rounded-lg", "z-10", "w-40");
+
+      const categories = [
+        { title: "Tech News", href: "blog.html#tech-news" },
+        { title: "Programming Languages", href: "blog.html#programming-languages" },
+        { title: "Data Engineering", href: "blog.html#data-engineering" },
+        { title: "Blockchain Development", href: "blog.html#blockchain-development" },
+        { title: "CS & More", href: "blog.html#cs-more" },
+      ];
+
+      categories.forEach((cat) => {
+        const catLink = document.createElement("a");
+        catLink.href = cat.href;
+        catLink.innerText = cat.title;
+        catLink.classList.add("block", "px-4", "py-2", "hover:bg-gray-100");
+        subMenu.appendChild(catLink);
+      });
+
+      blogWrapper.appendChild(blogLink);
+      blogWrapper.appendChild(subMenu);
+      menuContainer.appendChild(blogWrapper);
+    }
   });
 
   // 검색 버튼 클릭 시 검색창 출력
