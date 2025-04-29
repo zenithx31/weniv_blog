@@ -1,4 +1,4 @@
-# About
+# About & Contact
 
 * hello world a
 * hello world a
