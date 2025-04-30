@@ -89,20 +89,22 @@ async function renderMenu() {
       blogLink.href = menu.download_url;
       blogLink.innerText = "Blog";
 
+      blogLink.onclick = (event) => {
+        event.preventDefault();
+        if (blogList.length === 0) {
+          initDataBlogList().then(() => {
+            renderBlogList();
+          });
+        } else {
+          renderBlogList();
+        }
+        const url = new URL(origin);
+        url.searchParams.set("menu", menu.name);
+        window.history.pushState({}, "", url);
+      };
+
       const subMenu = document.createElement("div");
-      subMenu.classList.add(
-        "absolute", "left-0", "top-full",
-        "invisible", "group-hover:visible",
-        "opacity-0", "group-hover:opacity-100",
-        "transition-opacity", "duration-150",
-        "bg-white", "shadow-lg", "mt-2", "py-2",
-        "rounded-lg", "z-10", "w-44"
-      );
-
-// 하위 메뉴 유지되도록 hover 자체에 반응
-subMenu.onmouseenter = () => subMenu.classList.add("visible", "opacity-100");
-subMenu.onmouseleave = () => subMenu.classList.remove("visible", "opacity-100");
-
+      subMenu.classList.add("absolute", "hidden", "group-hover:block", "bg-white", "shadow-lg", "mt-2", "py-2", "rounded-lg", "z-10", "w-40");
 
       const categories = [
         { title: "Tech News", href: "blog.html#tech-news" },
